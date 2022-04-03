@@ -1,0 +1,240 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    # Setting olm.maxOpenShiftVersion automatically
+    # This property was added via an automatic process since it was possible to identify that this distribution uses API(s),
+    # which will be removed in the k8s version 1.22 and OpenShift version OCP 4.9. Then, it will prevent OCP users to
+    # upgrade their cluster to 4.9 before they have installed in their current clusters a version of your operator that
+    # is compatible with it. Please, ensure that your project is no longer using these API(s) and that you start to
+    # distribute solutions which is compatible with Openshift 4.9.
+    # For further information, check the README of this repository.
+    olm.properties: '[{"type": "olm.maxOpenShiftVersion", "value": "4.8"}]'
+    certified: 'false'
+    repository: github.ibm.com/anz-tech-garage/tpn-operator
+    alm-examples: |-
+      [
+        {
+          "apiVersion": "tpn.example.com/v1alpha1",
+          "kind": "TelstraProgrammableNetwork",
+          "metadata": {
+            "name": "tpn-sample"
+          },
+          "spec": {
+            "bandwidth": 40
+          }
+        }
+      ]
+    capabilities: Basic Install
+    operators.operatorframework.io/builder: operator-sdk-v0.19.2
+    operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
+    containerImage: 'quay.io/anz-ce/tpn-operator:v1.0.0'
+    createdAt: '2020-08-11T12:00:00Z'
+    categories: 'Developer Tools'
+    description: Operator for the Telstra Programmable Network
+    support: Create an issue at github.ibm.com/anz-tech-garage/tpn-operator
+  name: tpn-operator.v1.0.0
+  namespace: placeholder
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+    - description: TelstraProgrammableNetwork is the Schema for the tpn API
+      kind: TelstraProgrammableNetwork
+      name: tpns.tpn.example.com
+      version: v1alpha1
+      displayName: Telstra Programmable Network 
+  displayName: Telstra Programmable Network
+  icon:
+  - base64data: iVBORw0KGgoAAAANSUhEUgAAADUAAAAhCAIAAAD2w3SqAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAEPSURBVFhH7ZbBEYMgEEXTjf1QjTer8GYH9OAMTXilAIvYrLAwxqiJfJnksG+4sIPjk/UrD/pv1A9D/TDUD0P9MO7ws4Y6Q5OXqTBS34S6zMvA/Ubq2KMhO0ohMrVSdxvva+B+PuzTsd+v9y/59YMUIo6bznVDsxTKqOZnQ7FrZVpKJb8D6etU8kuhwcLB1PGbB/HDwsHc57fOr4QXDQeD++21UsKLhoOB/Xa/czG8cDgY0O80vJsvdhFf+8krb8ilu87xDxuKL+/ZuuN+WeYGsi31Jq2/sLVf++U+vo/NySCH92Tkh/zElf7Ofjmq5D3g0bd7CU39jQvssDwAX1sEnI/KqB+G+mGoH4b6IRA9AfM03ocXOND7AAAAAElFTkSuQmCC
+    mediatype: image/png
+  install:
+    spec:
+      clusterPermissions:
+      - rules:
+        - apiGroups:
+          - apps
+          resources:
+          - deployments/finalizers
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - ""
+          resources:
+          - pods
+          verbs:
+          - get
+          - list
+        - apiGroups:
+          - tpn.example.com
+          resources:
+          - tpns
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - tpn.example.com
+          resources:
+          - tpns/status
+          verbs:
+          - get
+          - patch
+          - update
+        serviceAccountName: tpn-operator-manager-role
+      - rules:
+        - apiGroups:
+          - authentication.k8s.io
+          resources:
+          - tokenreviews
+          verbs:
+          - create
+        - apiGroups:
+          - authorization.k8s.io
+          resources:
+          - subjectaccessreviews
+          verbs:
+          - create
+        serviceAccountName: tpn-operator-proxy-role
+      - rules:
+        - nonResourceURLs:
+          - /metrics
+          verbs:
+          - get
+        serviceAccountName: tpn-operator-metrics-reader
+      - rules:
+        - verbs:
+          - '*'
+          apiGroups:
+            - '*'
+          resources:
+            - '*'
+        - verbs:
+          - '*'
+          nonResourceURLs:
+            - '*'
+        serviceAccountName: default
+      deployments:
+      - name: tpn-operator-controller-manager
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              control-plane: controller-manager
+          strategy: {}
+          template:
+            metadata:
+              labels:
+                control-plane: controller-manager
+            spec:
+              containers:
+              - args:
+                - --secure-listen-address=0.0.0.0:8443
+                - --upstream=http://127.0.0.1:8080/
+                - --logtostderr=true
+                - --v=10
+                image: gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0
+                name: kube-rbac-proxy
+                ports:
+                - containerPort: 8443
+                  name: https
+                resources: {}
+              - args:
+                - --metrics-addr=127.0.0.1:8080
+                - --enable-leader-election
+                command:
+                - /manager
+                image: quay.io/anz-ce/tpn-operator:v1.0.0
+                name: manager
+                resources:
+                  limits:
+                    cpu: 100m
+                    memory: 30Mi
+                  requests:
+                    cpu: 100m
+                    memory: 20Mi
+              terminationGracePeriodSeconds: 10
+      permissions:
+      - rules:
+        - apiGroups:
+          - ""
+          resources:
+          - configmaps
+          verbs:
+          - get
+          - list
+          - watch
+          - create
+          - update
+          - patch
+          - delete
+        - apiGroups:
+          - ""
+          resources:
+          - configmaps/status
+          verbs:
+          - get
+          - update
+          - patch
+        - apiGroups:
+          - ""
+          resources:
+          - events
+          verbs:
+          - create
+          - patch
+        serviceAccountName: tpn-operator-leader-election-role
+    strategy: deployment
+  installModes:
+  - supported: true
+    type: OwnNamespace
+  - supported: true
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  keywords:
+  - ide
+  - ai
+  - ml
+  links:
+  - name: Telstra Programmale Network Operator
+    url: https://www.telstra.com.au/business-enterprise/products/networks/sdn/telstra-programmable-network
+  maturity: alpha
+  maintainers:
+    - name: Jo Doe
+      email: jodoe@telstra.com
+  provider:
+    name: Jo Doe
+  description: >
+    Telstra Programmable Network is a self-provisioning platform that allows its users to create on-demand connectivity services between multiple end-points and add various network functions to those services. Programmable Network enables to connectivity to a global ecosystem of networking services as well as public and private cloud services.:
+
+      [Telstra Programmable Network API] (https://dev.telstra.com/content/programmable-network-api)
+
+
+    **Prerequisites:**
+
+    - Cluster administrator privileges
+
+
+    **Installation:**
+
+
+    1. Install the operator through the catalog.
+
+    2. Select Telstra Programmable Network under "Installed Operators"
+
+    3. Create an instance of  using the default configuration "tpn-sample"
+
+  version: 1.0.0

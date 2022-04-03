@@ -1,0 +1,5 @@
+channels:
+  - currentCSV: tpn-operator.v1.0.0
+    name: stable
+defaultChannel: stable
+packageName: tpn-operator
