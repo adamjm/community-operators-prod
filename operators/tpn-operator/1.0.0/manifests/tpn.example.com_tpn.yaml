@@ -4,20 +4,20 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.0
   creationTimestamp: null
-  name: jupyterlabs.jupyter.example.com
+  name: tpns.tpn.example.com
 spec:
-  group: jupyter.example.com
+  group: tpn.example.com
   names:
-    kind: Jupyterlab
-    listKind: JupyterlabList
-    plural: jupyterlabs
-    singular: jupyterlab
+    kind: Telstraprogrammablenetwork
+    listKind: TelstraprogrammablenetworkList
+    plural: tpns
+    singular: tpn
   scope: Namespaced
   subresources:
     status: {}
   validation:
     openAPIV3Schema:
-      description: Jupyterlab is the Schema for the jupyterlabs API
+      description: Telstraprogrammablenetwork is the Schema for the tpns API
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation
@@ -32,7 +32,7 @@ spec:
         metadata:
           type: object
         spec:
-          description: JupyterlabSpec defines the desired state of Jupyterlab
+          description: TelstraprogrammablenetworkSpec defines the desired state of Telstraprogrammablenetwork
           properties:
             size:
               description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
@@ -43,7 +43,7 @@ spec:
           - size
           type: object
         status:
-          description: JupyterlabStatus defines the observed state of Jupyterlab
+          description: TelstraprogrammablenetworkStatus defines the observed state of Telstraprogrammablenetwork
           properties:
             nodes:
               description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
